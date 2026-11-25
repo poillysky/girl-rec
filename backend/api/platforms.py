@@ -47,12 +47,19 @@ def _get_value(db: OrmSession, platform: str, param: str, default):
     return default
 
 
+# 平台管理页不展示的适配器（自定义流是裸 m3u8/flv 兜底，无画质/Cookie 可配，
+# 仅在添加房间时作为可选平台使用）
+HIDDEN_PLATFORMS = {"自定义录制直播"}
+
+
 @router.get("/platforms")
 def api_list_platforms(db: OrmSession = Depends(get_session)):
     """平台列表 + 每平台当前配置值（供前端平台配置页渲染）。"""
     out = []
     for p in list_platforms():
         name = p["name"]
+        if name in HIDDEN_PLATFORMS:
+            continue
         params = []
         for d in PLATFORM_PARAM_DEFS:
             val = _get_value(db, name, d["key"], d["default"])
